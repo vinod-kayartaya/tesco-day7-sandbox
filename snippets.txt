@@ -1,0 +1,92 @@
+-------------------------- snippet 01 - BDD feature file --------------------------
+Feature: Customer Management
+  As an API user
+  I want to manage customer information
+  So that I can maintain customer records
+
+  Scenario: Get customer by ID
+    Given there is an existing customer in the system
+    When I send a GET request to fetch the customer by ID
+    Then the customer details should be returned successfully
+
+  Scenario: Create a new customer
+    Given I have a new customer with following details:
+      | firstname | lastname | email           | phone      | gender | city     |
+      | John      | Doe      | john@email.com  | 1234567890 | Male   | London   |
+    When I send a POST request to create the customer
+    Then the customer should be created successfully
+    And the response should contain the customer details
+
+  Scenario: Update customer
+    Given there is an existing customer in the system
+    When I update the customer with following details:
+      | firstname | lastname | email           | phone      | gender | city     |
+      | Jane      | Doe      | jane@email.com  | 9876543210 | Female | Manchester|
+    Then the customer should be updated successfully
+    And the response should contain the updated customer details
+
+  Scenario: Delete customer
+    Given there is an existing customer in the system
+    When I send a DELETE request for the customer
+    Then the customer should be deleted successfully
+
+-------------------------- snippet 02 - kafaka application.yaml --------------------------
+spring:
+  kafka:
+    producer:
+      bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        acks: 1
+        retries: 3
+        retry.backoff.ms: 1000
+
+kafka:
+  topic: notification-topic
+-------------------------- snippet 03 - kafaka maven dependency --------------------------
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+-------------------------- snippet 04 - docker compose script for zookeeper and kafaka --------------------------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-net
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks:
+      - kafka-net
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  kafka-net:
+    driver: bridge

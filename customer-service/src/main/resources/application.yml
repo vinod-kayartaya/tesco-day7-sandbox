@@ -1,0 +1,12 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  couchbase:
+    connection-string: couchbase://${COUCHBASE_HOST:localhost}
+    username: ${COUCHBASE_USERNAME:Administrator}
+    password: ${COUCHBASE_PASSWORD:Welcome#123}
+  data:
+    couchbase:
+      bucket-name: ${COUCHBASE_BUCKET:northwind}
+      scope-name: _default

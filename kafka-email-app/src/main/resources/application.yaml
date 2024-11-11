@@ -1,0 +1,26 @@
+server:
+  port: 9876
+
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: kayartaya.vinod@gmail.com
+    password: your-16-letter-gmail-app-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  kafka:
+    consumer:
+      bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+      group-id: email-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+kafka:
+  topic: notification-topic
